@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="stylesheet" type="text/css" href="./styles.css">
+    <title>Seam Carver visualizer</title>
+  </head>
+  <body>
+    <div id="root">
+      <input type="file" id="file-input" accept="image/*">
+      <div>
+        <input type="range" id="width" name="width"
+               min="0" max="11">
+        <label for="volume">Width</label>
+      </div>
+      <div>
+        <input type="range" id="height" name="height"
+               min="0" max="11">
+        <label for="volume">Height</label>
+      </div>
+      <img id="image-preview" />
+    </div>
+  </body>
+  <script src="./script.js"></script>
+</html>

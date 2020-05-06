@@ -1,0 +1,16 @@
+{
+  "name": "seam-carver-visualizer",
+  "version": "1.0.0",
+  "description": "Web application to resize images using Seam Carver method",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "seam",
+    "carver",
+    "algorithms"
+  ],
+  "author": "Jorge Florian",
+  "license": "ISC"
+}
