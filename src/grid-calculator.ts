@@ -24,7 +24,7 @@ export default class GridCalculator {
   }
 
   public getRowOfIndex(index: number) {
-    return index / this._width
+    return Math.floor(index / this._width)
   }
 
   public getIndex(row: number, col: number): number {

@@ -1,6 +1,13 @@
 import GridCalculator from "./grid-calculator"
 import TopologicalSort from "./topological-sort"
 
+interface Color {
+  red: number
+  green: number
+  blue: number
+  alpha: number
+}
+
 export default class SeamCarver {
   private static BORDER_ENERGY: number = 1000 * 1000
   private static ERROR_MSG_INVALID_SEAM = 'Invalid seam input.'
@@ -45,7 +52,7 @@ export default class SeamCarver {
     const seam: Array<number> = []
     let seamIter: number = minIndex;
     for (let i = this.grid.height() - 1; i >= 0; i--) {
-      seam[i] = seamIter % this.grid.width();
+      seam[i] = this.grid.getColumnOfIndex(seamIter);
       seamIter = this.edgeTo[seamIter];
     }
 
@@ -62,14 +69,22 @@ export default class SeamCarver {
 
     // TODO: improve remove using array slice.
     const newWidth = this.grid.width() - 1;
-    const newPictureColors = new Uint8ClampedArray(newWidth * this.grid.height());
+    const newPictureColors = new Uint8ClampedArray(newWidth * this.grid.height() * 4);
     for (let row = 0; row < this.grid.height(); row++) {
       for (let col = 0; col < this.grid.width(); col++) {
         const colToRemove = seam[row];
+        const color = this.getColor(col, row)
+        let pixelColorIndex = -1
         if (col < colToRemove)
-          newPictureColors[this.grid.getIndexFromPosition(col, row, newWidth)] = this.getColor(col, row);
+          pixelColorIndex = this.getPixelColorsIndex(col, row, newWidth)
         else if (col > colToRemove)
-          newPictureColors[this.grid.getIndexFromPosition(col - 1, row, newWidth)] = this.getColor(col, row);
+          pixelColorIndex = this.getPixelColorsIndex(col - 1, row, newWidth)
+        
+        if (pixelColorIndex !== -1) {
+          newPictureColors[pixelColorIndex] = color.red
+          newPictureColors[pixelColorIndex + 1] = color.green
+          newPictureColors[pixelColorIndex + 1] = color.blue
+        }
       }
     }
     this.pictureColors = newPictureColors;
@@ -98,7 +113,7 @@ export default class SeamCarver {
   }
 
   private relax(v: number, w: number) {
-    const wEnergy = this.energy(this.grid.getColumnOfIndex(v), this.grid.getRowOfIndex(w));
+    const wEnergy = this.energy(this.grid.getColumnOfIndex(w), this.grid.getRowOfIndex(w));
     if (this.distTo[w] > this.distTo[v] + wEnergy) {
       this.distTo[w] = this.distTo[v] + wEnergy;
       this.edgeTo[w] = v;
@@ -111,7 +126,7 @@ export default class SeamCarver {
 
   private deltaEnergy(col: number, row: number) {
     if (col < 0 || col > this.grid.width() - 1 || row < 0 || row > this.grid.height() - 1)
-      throw new Error();
+      throw new Error('Invalid argumentd');
     if (row == 0 || row == this.grid.height() - 1 || col == 0 || col == this.grid.width() - 1) {
       return SeamCarver.BORDER_ENERGY;
     }
@@ -122,27 +137,25 @@ export default class SeamCarver {
     return deltaRow + deltaCol;
   }
 
-  private getColorDelta(rgbaA: number, rgbaB: number) {
+  private getColorDelta(rgbaA: Color, rgbaB: Color) {
     return (
-      Math.pow(this.getRed(rgbaA) - this.getRed(rgbaB), 2) +
-      Math.pow(this.getGreen(rgbaA) - this.getGreen(rgbaB), 2) +
-      Math.pow(this.getBlue(rgbaA) - this.getBlue(rgbaB), 2)
+      Math.pow(rgbaA.red - rgbaB.red, 2) +
+      Math.pow(rgbaA.green - rgbaB.green, 2) +
+      Math.pow(rgbaA.blue - rgbaB.blue, 2)
     );
   }
 
-  private getRed(rgb: number) {
-    return (rgb >> 16) & 0xFF;
+  private getColor(col: number, row: number): Color {
+    const redIndex = this.getPixelColorsIndex(col, row)
+    return {
+      red: this.pictureColors[redIndex],
+      green: this.pictureColors[redIndex + 1],
+      blue: this.pictureColors[redIndex + 2],
+      alpha: this.pictureColors[redIndex + 3]
+    }
   }
 
-  private getGreen(rgb: number) {
-    return (rgb >> 8) & 0xFF;
-  }
-
-  private getBlue(rgb: number) {
-    return (rgb >> 0) & 0xFF;
-  }
-
-  private getColor(col: number, row: number) {
-    return this.pictureColors[this.grid.getIndex(col, row)];
+  private getPixelColorsIndex(col: number, row: number, width = this.grid.width()): number {
+    return row * (width * 4) + col * 4
   }
 }
