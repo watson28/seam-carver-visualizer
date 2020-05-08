@@ -1,14 +1,25 @@
+import ProgressModalController from "./progress-modal-controller"
+
 type FileEventTarget = EventTarget & { files: FileList }
+
+const IDs = {
+  canvas: 'image-preview',
+  fileInput: 'file-input',
+  modal: 'progress-modal',
+  progressBar: 'progress-bar'
+}
 
 export default class ViewController {
   private canvasEl: HTMLCanvasElement
   private fileInputEl: HTMLInputElement
   private changeImageListeners: Array<Function>
+  private progressModalController: ProgressModalController
 
-  constructor(canvasId: string, fileInputId: string) {
+  constructor() {
     this.changeImageListeners = []
-    this.canvasEl = <HTMLCanvasElement> document.getElementById(canvasId)
-    this.fileInputEl = <HTMLInputElement> document.getElementById(fileInputId)
+    this.canvasEl = <HTMLCanvasElement> document.getElementById(IDs.canvas)
+    this.fileInputEl = <HTMLInputElement> document.getElementById(IDs.fileInput)
+    this.progressModalController = new ProgressModalController(IDs.modal, IDs.progressBar)
 
     if (this.canvasEl === null || this.fileInputEl == null) throw new Error('Invalid id element')
 
@@ -21,6 +32,10 @@ export default class ViewController {
 
   public get fileInputElement() {
     return this.fileInputEl
+  }
+
+  public get progressModal() {
+    return this.progressModalController
   }
 
   public registerChangeImageListener(callback: (this: void, image: HTMLImageElement) => void) {
