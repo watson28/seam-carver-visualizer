@@ -1,0 +1,5 @@
+node_modules
+scripts.js
+scripts.js.map
+dist
+.cache
