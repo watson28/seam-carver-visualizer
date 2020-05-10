@@ -60,32 +60,22 @@ export default class SeamCarver {
   }
 
   public removeVerticalSeam(seam: Array<number>) {
-    if (seam == null || seam.length != this.grid.height() || this.grid.width() <= 1) throw new Error(SeamCarver.ERROR_MSG_INVALID_SEAM);
+    if (seam == null || seam.length !== this.grid.height() || this.grid.width() <= 1) throw new Error(SeamCarver.ERROR_MSG_INVALID_SEAM);
     for (let i = 0; i < seam.length; i++) {
       if (seam[i] < 0 || seam[i] > this.grid.width() - 1 || (i < seam.length - 1 && Math.abs(seam[i] - seam[i + 1]) > 1)) {
         throw new Error(SeamCarver.ERROR_MSG_INVALID_SEAM);
       }
     }
 
-    // TODO: improve remove using array slice.
     const newWidth = this.grid.width() - 1;
     const newPictureColors = new Uint8ClampedArray(newWidth * this.grid.height() * 4);
-    for (let row = 0; row < this.grid.height(); row++) {
-      for (let col = 0; col < this.grid.width(); col++) {
-        const colToRemove = seam[row];
-        const color = this.getColor(col, row)
-        let pixelColorIndex = -1
-        if (col < colToRemove)
-          pixelColorIndex = this.getPixelColorsIndex(col, row, newWidth)
-        else if (col > colToRemove)
-          pixelColorIndex = this.getPixelColorsIndex(col - 1, row, newWidth)
-        
-        if (pixelColorIndex !== -1) {
-          newPictureColors[pixelColorIndex] = color.red
-          newPictureColors[pixelColorIndex + 1] = color.green
-          newPictureColors[pixelColorIndex + 1] = color.blue
-        }
-      }
+    let copyOffset = 0, sliceStart = 0, sliceEnd = 0
+    for (let row = 0; row < seam.length; row++) {
+      sliceEnd = this.getPixelColorsIndex(seam[row], row)
+      const arraySlice = this.pictureColors.slice(sliceStart, sliceEnd)
+      newPictureColors.set(arraySlice, copyOffset)
+      copyOffset += arraySlice.length
+      sliceStart = sliceEnd + 4
     }
     this.pictureColors = newPictureColors;
     this.grid = new GridCalculator(newWidth, this.grid.height())
@@ -120,13 +110,9 @@ export default class SeamCarver {
     }
   }
 
-  private energy(col: number, row: number) {
-    return Math.sqrt(this.deltaEnergy(col, row));
-  }
-
-  private deltaEnergy(col: number, row: number) {
+  public energy(col: number, row: number) {
     if (col < 0 || col > this.grid.width() - 1 || row < 0 || row > this.grid.height() - 1)
-      throw new Error('Invalid argumentd');
+      throw new Error('Invalid argument');
     if (row == 0 || row == this.grid.height() - 1 || col == 0 || col == this.grid.width() - 1) {
       return SeamCarver.BORDER_ENERGY;
     }
@@ -134,7 +120,7 @@ export default class SeamCarver {
     const deltaRow = this.getColorDelta(this.getColor(col, row + 1), this.getColor(col, row - 1));
     const deltaCol = this.getColorDelta(this.getColor(col + 1, row), this.getColor(col - 1, row));
 
-    return deltaRow + deltaCol;
+    return Math.sqrt(deltaRow + deltaCol);
   }
 
   private getColorDelta(rgbaA: Color, rgbaB: Color) {
