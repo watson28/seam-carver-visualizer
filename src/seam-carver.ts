@@ -1,24 +1,29 @@
 import GridCalculator from "./grid-calculator"
 import TopologicalSort from "./topological-sort"
 
-interface Color {
-  red: number
-  green: number
-  blue: number
-  alpha: number
-}
-
 export default class SeamCarver {
   private static BORDER_ENERGY: number = 1000 * 1000
   private static ERROR_MSG_INVALID_SEAM = 'Invalid seam input.'
   distTo: Array<number>
   edgeTo: Array<number>
-  pictureColors: Uint8ClampedArray
+  pictureColors: Uint32Array
+  pixelEnergies: Uint16Array
   grid: GridCalculator
 
   constructor(picture: Uint8ClampedArray, pictureWidth: number, pictureHeight: number) {
-    this.pictureColors = picture
     this.grid = new GridCalculator(pictureWidth, pictureHeight)
+    this.pictureColors = new Uint32Array(this.grid.getLength())
+    this.pixelEnergies = new Uint16Array(this.grid.getLength())
+
+    for(let v = 0; v < this.grid.getLength(); v++) {
+      this.pictureColors[v] = (
+        (picture[v * 4] << 24) | 
+        (picture[v * 4 + 1] << 16) |
+        (picture[v * 4 + 2] << 8) |
+        picture[v * 4 + 3]
+      )
+      this.pixelEnergies[v] = this.getVertexEnergy(v)
+    }
   }
 
   public width(): number {
@@ -68,16 +73,18 @@ export default class SeamCarver {
     }
 
     const newWidth = this.grid.width() - 1;
-    const newPictureColors = new Uint8ClampedArray(newWidth * this.grid.height() * 4);
+    const newPictureColors = new Uint32Array(newWidth * this.grid.height());
+    const newPixelEnergies = new Uint16Array(newWidth * this.grid.height())
     let copyOffset = 0, sliceStart = 0, sliceEnd = 0
     for (let row = 0; row < seam.length; row++) {
       sliceEnd = this.getPixelColorsIndex(seam[row], row)
-      const arraySlice = this.pictureColors.slice(sliceStart, sliceEnd)
-      newPictureColors.set(arraySlice, copyOffset)
-      copyOffset += arraySlice.length
-      sliceStart = sliceEnd + 4
+      newPictureColors.set(this.pictureColors.slice(sliceStart, sliceEnd), copyOffset)
+      newPixelEnergies.set(this.pixelEnergies.slice(sliceStart, sliceEnd), copyOffset)
+      copyOffset += (sliceEnd - sliceStart)
+      sliceStart = sliceEnd + 1
     }
     this.pictureColors = newPictureColors;
+    this.pixelEnergies = newPixelEnergies
     this.grid = new GridCalculator(newWidth, this.grid.height())
   }
 
@@ -103,7 +110,7 @@ export default class SeamCarver {
   }
 
   private relax(v: number, w: number) {
-    const wEnergy = this.energy(this.grid.getColumnOfIndex(w), this.grid.getRowOfIndex(w));
+    const wEnergy = this.pixelEnergies[w];
     if (this.distTo[w] > this.distTo[v] + wEnergy) {
       this.distTo[w] = this.distTo[v] + wEnergy;
       this.edgeTo[w] = v;
@@ -112,36 +119,34 @@ export default class SeamCarver {
 
   public energy(col: number, row: number) {
     if (col < 0 || col > this.grid.width() - 1 || row < 0 || row > this.grid.height() - 1)
-      throw new Error('Invalid argument');
+      throw new Error('Invalid argument')
     if (row == 0 || row == this.grid.height() - 1 || col == 0 || col == this.grid.width() - 1) {
-      return SeamCarver.BORDER_ENERGY;
+      return SeamCarver.BORDER_ENERGY
     }
 
-    const deltaRow = this.getColorDelta(this.getColor(col, row + 1), this.getColor(col, row - 1));
-    const deltaCol = this.getColorDelta(this.getColor(col + 1, row), this.getColor(col - 1, row));
+    const deltaRow = this.getColorDelta(this.getColor(col, row + 1), this.getColor(col, row - 1))
+    const deltaCol = this.getColorDelta(this.getColor(col + 1, row), this.getColor(col - 1, row))
 
     return Math.sqrt(deltaRow + deltaCol);
   }
 
-  private getColorDelta(rgbaA: Color, rgbaB: Color) {
-    return (
-      Math.pow(rgbaA.red - rgbaB.red, 2) +
-      Math.pow(rgbaA.green - rgbaB.green, 2) +
-      Math.pow(rgbaA.blue - rgbaB.blue, 2)
-    );
+  private getVertexEnergy(vertex: number) {
+    return this.energy(this.grid.getColumnOfIndex(vertex), this.grid.getRowOfIndex(vertex))
   }
 
-  private getColor(col: number, row: number): Color {
-    const redIndex = this.getPixelColorsIndex(col, row)
-    return {
-      red: this.pictureColors[redIndex],
-      green: this.pictureColors[redIndex + 1],
-      blue: this.pictureColors[redIndex + 2],
-      alpha: this.pictureColors[redIndex + 3]
-    }
+  private getColorDelta(rgbaA: number, rgbaB: number) {
+    return (
+      Math.pow((rgbaA >> 24) - (rgbaB >> 24), 2) +
+      Math.pow((rgbaA >> 16) - (rgbaB >> 16), 2) +
+      Math.pow((rgbaA >> 8) - (rgbaB >> 8), 2)
+    )
+  }
+
+  private getColor(col: number, row: number): number {
+    return this.pictureColors[this.getPixelColorsIndex(col, row)]
   }
 
   private getPixelColorsIndex(col: number, row: number, width = this.grid.width()): number {
-    return row * (width * 4) + col * 4
+    return row * width + col
   }
 }
