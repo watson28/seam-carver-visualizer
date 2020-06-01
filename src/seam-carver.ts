@@ -2,26 +2,20 @@ import GridCalculator from "./grid-calculator"
 import TopologicalSort from "./topological-sort"
 
 export default class SeamCarver {
-  private static BORDER_ENERGY: number = 1000 * 1000
+  private static BORDER_ENERGY: number = 1000
   private static ERROR_MSG_INVALID_SEAM = 'Invalid seam input.'
   distTo: Array<number>
   edgeTo: Array<number>
-  pictureColors: Uint32Array
+  // pictureColors: Uint32Array
+  picture: Uint8ClampedArray
   pixelEnergies: Uint16Array
   grid: GridCalculator
 
   constructor(picture: Uint8ClampedArray, pictureWidth: number, pictureHeight: number) {
     this.grid = new GridCalculator(pictureWidth, pictureHeight)
-    this.pictureColors = new Uint32Array(this.grid.getLength())
     this.pixelEnergies = new Uint16Array(this.grid.getLength())
-
+    this.picture = picture
     for(let v = 0; v < this.grid.getLength(); v++) {
-      this.pictureColors[v] = (
-        (picture[v * 4] << 24) | 
-        (picture[v * 4 + 1] << 16) |
-        (picture[v * 4 + 2] << 8) |
-        picture[v * 4 + 3]
-      )
       this.pixelEnergies[v] = this.getVertexEnergy(v)
     }
   }
@@ -73,19 +67,29 @@ export default class SeamCarver {
     }
 
     const newWidth = this.grid.width() - 1;
-    const newPictureColors = new Uint32Array(newWidth * this.grid.height());
-    const newPixelEnergies = new Uint16Array(newWidth * this.grid.height())
+    const newPictureColors = new Uint8ClampedArray(newWidth * this.grid.height() * 4);
     let copyOffset = 0, sliceStart = 0, sliceEnd = 0
     for (let row = 0; row < seam.length; row++) {
-      sliceEnd = this.getPixelColorsIndex(seam[row], row)
-      newPictureColors.set(this.pictureColors.slice(sliceStart, sliceEnd), copyOffset)
+      sliceEnd = this.grid.getIndex(row, seam[row]) * 4
+      newPictureColors.set(this.picture.slice(sliceStart, sliceEnd), copyOffset)
+      copyOffset += (sliceEnd - sliceStart)
+      sliceStart = sliceEnd + 4
+    }
+    this.picture = newPictureColors;
+    this.removePixelEnergySeam(seam, newWidth)
+    this.grid = new GridCalculator(newWidth, this.grid.height())
+  }
+
+  private removePixelEnergySeam(seam: Array<number>, newWidth: number) {
+    const newPixelEnergies = new Uint16Array(newWidth * this.grid.height())
+    let copyOffset = 0, sliceStart = 0, sliceEnd = 0
+    for(let row = 0; row < seam.length; row++) {
+      sliceEnd = this.grid.getIndex(row, seam[row])
       newPixelEnergies.set(this.pixelEnergies.slice(sliceStart, sliceEnd), copyOffset)
       copyOffset += (sliceEnd - sliceStart)
-      sliceStart = sliceEnd + 1
+      sliceStart = sliceEnd + 1 
     }
-    this.pictureColors = newPictureColors;
     this.pixelEnergies = newPixelEnergies
-    this.grid = new GridCalculator(newWidth, this.grid.height())
   }
 
   private initDistTo(verticalOrientation: boolean) {
@@ -134,19 +138,16 @@ export default class SeamCarver {
     return this.energy(this.grid.getColumnOfIndex(vertex), this.grid.getRowOfIndex(vertex))
   }
 
-  private getColorDelta(rgbaA: number, rgbaB: number) {
+  private getColorDelta(rgbaA: Uint8ClampedArray, rgbaB: Uint8ClampedArray) {
     return (
-      Math.pow((rgbaA >> 24) - (rgbaB >> 24), 2) +
-      Math.pow((rgbaA >> 16) - (rgbaB >> 16), 2) +
-      Math.pow((rgbaA >> 8) - (rgbaB >> 8), 2)
+      Math.pow((rgbaA[0]) - (rgbaB[0]), 2) +
+      Math.pow((rgbaA[1]) - (rgbaB[1]), 2) +
+      Math.pow((rgbaA[2]) - (rgbaB[2]), 2)
     )
   }
 
-  private getColor(col: number, row: number): number {
-    return this.pictureColors[this.getPixelColorsIndex(col, row)]
-  }
-
-  private getPixelColorsIndex(col: number, row: number, width = this.grid.width()): number {
-    return row * width + col
+  private getColor(col: number, row: number): Uint8ClampedArray {
+    const redIndex = this.grid.getIndex(row, col) * 4
+    return this.picture.slice(redIndex, redIndex + 4)
   }
 }

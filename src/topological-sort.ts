@@ -47,15 +47,15 @@ export default class TopologicalSort {
     if (row >= this.grid.height() - 1) return neighbors;
 
     // bottom neighbor
-    neighbors.push(this.grid.getIndex(row + 1, col))
+    neighbors.unshift(this.grid.getIndex(row + 1, col))
 
     // bottom-left neighbor
     if (col > 0) {
-        neighbors.push(this.grid.getIndex(row + 1, col - 1))
+        neighbors.unshift(this.grid.getIndex(row + 1, col - 1))
     }
     // bottom-right neighbor.
     if (col < this.grid.width() - 1) {
-        neighbors.push(this.grid.getIndex(row + 1, col + 1))
+        neighbors.unshift(this.grid.getIndex(row + 1, col + 1))
     }
     return neighbors
   }
