@@ -16,10 +16,12 @@ export default class WorkerClient {
 
   public registerProgressListener(listener: ProgressListener) {
     this.progressListeners.push(listener)
+    return this
   }
 
   public registerResultListener(listener: ResultListener) {
     this.resultListeners.push(listener)
+    return this
   }
 
   public start(imageData: ImageData) {

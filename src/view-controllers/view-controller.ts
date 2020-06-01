@@ -1,76 +1,92 @@
 import ProgressModalController from "./progress-modal-controller"
-
-type FileEventTarget = EventTarget & { files: FileList }
+import CanvasController from "./canvas-controller"
+import FileInputController from "./file-input-controller"
+import InputRangeController from "./input-range-controller"
+import WorkerClient from '../worker-client'
 
 const IDs = {
   canvas: 'image-preview',
   fileInput: 'file-input',
   modal: 'progress-modal',
-  progressBar: 'progress-bar'
+  progressBar: 'progress-bar',
+  widthRange: 'width'
 }
+
+const MAX_CANVAS_WIDTH = document.body.offsetWidth * 0.8
 
 export default class ViewController {
-  private canvasEl: HTMLCanvasElement
-  private fileInputEl: HTMLInputElement
-  private changeImageListeners: Array<Function>
   private progressModalController: ProgressModalController
+  private canvasController: CanvasController
+  private fileInputController: FileInputController
+  private widthInputController: InputRangeController
+  private verticalSeams: number[][]
+  private removedVerticalSeams: number[][]
+  private removedVerticalPixels: Uint8Array[]
+  private originalWidth: number
+  private newWidth: number
 
   constructor() {
-    this.changeImageListeners = []
-    this.canvasEl = <HTMLCanvasElement> document.getElementById(IDs.canvas)
-    this.fileInputEl = <HTMLInputElement> document.getElementById(IDs.fileInput)
+    this.verticalSeams = []
+    this.removedVerticalSeams = []
+    this.removedVerticalPixels = []
     this.progressModalController = new ProgressModalController(IDs.modal, IDs.progressBar)
-
-    if (this.canvasEl === null || this.fileInputEl == null) throw new Error('Invalid id element')
-
-    this.fileInputEl.addEventListener('change', this.handleNewFileEvent.bind(this))
+    this.canvasController = new CanvasController(IDs.canvas)
+    this.fileInputController = new FileInputController(IDs.fileInput)
+    this.widthInputController = new InputRangeController(IDs.widthRange)
   }
 
-  public get canvasElement() {
-    return this.canvasEl
+  public init() {
+    this.fileInputController.registerChangeImageListener(this.handleNewImage.bind(this))
+    this.widthInputController.setDisabled(true)
+    this.widthInputController.registerChangeValueListener(this.handleWidthResize.bind(this))
   }
 
-  public get fileInputElement() {
-    return this.fileInputEl
-  }
+  private async handleNewImage(image: HTMLImageElement) {
+    const scaleFactor = Math.min(MAX_CANVAS_WIDTH, image.width) / image.width
+    this.originalWidth = image.width * scaleFactor
+    this.canvasController.width = this.originalWidth 
+    this.canvasController.height = image.height * scaleFactor
+    this.canvasController.drawImage(image)
+    
+    this.progressModalController.show()
+    this.progressModalController.setProgress(0)
 
-  public get progressModal() {
-    return this.progressModalController
-  }
-
-  public registerChangeImageListener(callback: (this: void, image: HTMLImageElement) => void) {
-    this.changeImageListeners.push(callback)
-  }
-
-  public setCanvasDimensions(width: number, height: number) {
-    this.canvasEl.width = width
-    this.canvasElement.height = height
-  }
-
-  public drawImage(image: HTMLImageElement): void {
-    this.canvasElement.getContext('2d')
-      .drawImage(image, 0, 0, this.canvasElement.width, this.canvasElement.height)
-  }
-
-  public getCanvasPixelData(): ImageData {
-    return this.canvasElement.getContext('2d')
-    .getImageData(0, 0, this.canvasElement.width, this.canvasElement.height)
-  }
-
-  private async handleNewFileEvent(event: Event): Promise<void> {
-    const { files } = event.target as FileEventTarget
-    if (!files.length) return
-
-    const image = await this.createImage(files[0])
-    this.changeImageListeners.forEach(callback => callback(image))
-  }
-
-  private createImage(file: File): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-      const image = new Image()
-      image.addEventListener('load', () => resolve(image))
-      image.addEventListener('error', reject)
-      image.src = URL.createObjectURL(file)
+    const workerClient = new WorkerClient()
+    workerClient.registerProgressListener(
+      progress => this.progressModalController.setProgress(progress)
+    )
+    workerClient.registerResultListener(result => {
+      this.verticalSeams = result
+      this.progressModalController.hide()
+      this.widthInputController.setDisabled(false)
     })
+    workerClient.start(this.canvasController.getCanvasPixelData())
+  }
+
+  private handleWidthResize(widthPercentage: number) {
+    this.newWidth = Math.round(this.originalWidth * widthPercentage/100) 
+    console.log(this.newWidth)
+    requestAnimationFrame(this.updateCanvasPixels.bind(this))
+  }
+  
+  private updateCanvasPixels() {
+    const width = this.canvasController.width
+    if (this.newWidth === width) return 
+
+    if (this.newWidth < width) {
+      const seam = this.verticalSeams.shift()
+      this.removedVerticalSeams.push(seam)
+      this.removedVerticalPixels.push(
+        this.canvasController.removeVerticalSeam(seam)
+      )
+  } else {
+      const seam = this.removedVerticalSeams.pop()
+      const pixels = this.removedVerticalPixels.pop()
+      this.verticalSeams.unshift(seam)
+      this.canvasController.addVerticalSeam(seam, pixels)
+    }
+
+    requestAnimationFrame(this.updateCanvasPixels.bind(this))
   }
 }
+

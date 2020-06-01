@@ -12,8 +12,14 @@ export default class TopologicalSort {
 
     this.reversePost = []
     this.marked = []
-    for (let v = 0; v < this.grid.getLength(); v++)
-      if (!this.marked[v]) this.deepFirstSearch(v)
+    /*for (let v = 0; v < this.grid.getLength(); v++)
+      if (!this.marked[v]) this.deepFirstSearch(v)*/
+
+    for(let row = 0; row < this.grid.height(); row++) {
+      for (let col = 0; col < this.grid.width(); col++) {
+        this.reversePost.push(this.grid.getIndex(row, col))
+      }
+    }
   }
 
   public order(): Array<number> {
