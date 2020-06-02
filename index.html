@@ -13,15 +13,29 @@
 </head>
 
 <body>
-  <div id="root" class="container-fluid">
-    <form>
-      <div class="form-group">
-        <label for="file-input">Choose an image file</label>
-        <input type="file" class="form-control-file" id="file-input" accept="image/*">
+  <div id="root" class="container">
+    <h1 class="display-4" style="margin-top: 3rem;">Seam Carving visualizer</h1>
+    <p class="lead">
+      Seam-carving is a content-aware image resizing technique where the image is reduced in size by one pixel of height (or width) at a time. Unlike standard content-agnostic resizing techniques (such as cropping and scaling), seam carving preserves the most interest features (aspect ratio, set of objects present, etc.) of the image.
+    </p>
+    <form style="margin-top: 3rem;">
+      <div class="row">
+        <div class="col input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroupFileAddon01">Upload</span>
+          </div>
+          <div class="custom-file">
+            <input type="file" class="custom-file-input" id="file-input" accept="image/*" aria-describedby="file-input">
+            <label class="custom-file-label" for="file-input">Choose image</label>
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="width">Width</label>
-        <input type="range" class="form-control-range" id="width" name="width" min="0" max="100">
+      
+      <div class="row" style="margin-top: 1rem">
+        <div class="col form-group">
+          <label for="width">Width</label>
+          <input type="range" class="form-control-range" id="width" name="width" min="0" max="100">
+        </div>
       </div>
     </form>
     <canvas id="image-preview"></canvas>
