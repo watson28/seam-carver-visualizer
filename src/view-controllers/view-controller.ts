@@ -1,3 +1,4 @@
+import debounce from 'lodash/debounce'
 import ProgressModalController from "./progress-modal-controller"
 import CanvasController from "./canvas-controller"
 import FileInputController from "./file-input-controller"
@@ -15,6 +16,7 @@ const IDs = {
 const MAX_CANVAS_WIDTH = document.body.offsetWidth * 0.8
 
 export default class ViewController {
+  private static WAITING_TIME_BEFORE_UPDATE = 200
   private progressModalController: ProgressModalController
   private canvasController: CanvasController
   private fileInputController: FileInputController
@@ -24,6 +26,11 @@ export default class ViewController {
   private removedVerticalPixels: Uint8Array[]
   private originalWidth: number
   private newWidth: number
+  private updatingCanvas: boolean
+  private handleWidthResizeDebounced = debounce(
+    this.handleWidthResize.bind(this), 
+    ViewController.WAITING_TIME_BEFORE_UPDATE
+  )
 
   constructor() {
     this.verticalSeams = []
@@ -33,12 +40,13 @@ export default class ViewController {
     this.canvasController = new CanvasController(IDs.canvas)
     this.fileInputController = new FileInputController(IDs.fileInput)
     this.widthInputController = new InputRangeController(IDs.widthRange)
+    this.updatingCanvas = false
   }
 
   public init() {
     this.fileInputController.registerChangeImageListener(this.handleNewImage.bind(this))
     this.widthInputController.setDisabled(true)
-    this.widthInputController.registerChangeValueListener(this.handleWidthResize.bind(this))
+    this.widthInputController.registerChangeValueListener(this.handleWidthResizeDebounced)
   }
 
   private async handleNewImage(image: HTMLImageElement) {
@@ -65,28 +73,45 @@ export default class ViewController {
 
   private handleWidthResize(widthPercentage: number) {
     this.newWidth = Math.round(this.originalWidth * widthPercentage/100) 
-    console.log(this.newWidth)
+    if (this.updatingCanvas) return
+    this.updatingCanvas = true
     requestAnimationFrame(this.updateCanvasPixels.bind(this))
   }
   
   private updateCanvasPixels() {
     const width = this.canvasController.width
-    if (this.newWidth === width) return 
+    if (this.newWidth === width) {
+      this.updatingCanvas = false
+      return
+    } 
 
-    if (this.newWidth < width) {
-      const seam = this.verticalSeams.shift()
-      this.removedVerticalSeams.push(seam)
-      this.removedVerticalPixels.push(
-        this.canvasController.removeVerticalSeam(seam)
-      )
-  } else {
-      const seam = this.removedVerticalSeams.pop()
-      const pixels = this.removedVerticalPixels.pop()
-      this.verticalSeams.unshift(seam)
-      this.canvasController.addVerticalSeam(seam, pixels)
-    }
+    if (this.newWidth < width) this.removeVerticalSeam()
+    else this.addVerticalSeam() 
 
     requestAnimationFrame(this.updateCanvasPixels.bind(this))
+  }
+
+  private removeVerticalSeam() {
+    if(this.verticalSeams.length === 0) {
+      this.updatingCanvas = false
+      return
+    }
+    const seam = this.verticalSeams.shift()
+    this.removedVerticalSeams.push(seam)
+    this.removedVerticalPixels.push(
+      this.canvasController.removeVerticalSeam(seam)
+    )
+  }
+
+  private addVerticalSeam() {
+    if (this.removedVerticalSeams.length === 0) {
+      this.updatingCanvas = false
+      return
+    }
+    const seam = this.removedVerticalSeams.pop()
+    const pixels = this.removedVerticalPixels.pop()
+    this.verticalSeams.unshift(seam)
+    this.canvasController.addVerticalSeam(seam, pixels)
   }
 }
 

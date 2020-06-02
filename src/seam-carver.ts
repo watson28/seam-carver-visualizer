@@ -1,12 +1,10 @@
 import GridCalculator from "./grid-calculator"
-import TopologicalSort from "./topological-sort"
 
 export default class SeamCarver {
   private static BORDER_ENERGY: number = 1000
   private static ERROR_MSG_INVALID_SEAM = 'Invalid seam input.'
   distTo: Array<number>
   edgeTo: Array<number>
-  // pictureColors: Uint32Array
   picture: Uint8ClampedArray
   pixelEnergies: Uint16Array
   grid: GridCalculator
@@ -29,12 +27,11 @@ export default class SeamCarver {
   }
 
   public getVerticalSeam(): Array<number> {
-    const topologicalSort = new TopologicalSort(this.grid, true)
     this.initDistTo(true);
     this.initEdgeTo();
 
-    for (let v of topologicalSort.order()) {
-      for (let w of topologicalSort.adj(v)) this.relax(v, w);
+    for(let v = 0; v < this.grid.getLength(); v++) {
+      for (let w of this.grid.adjDownward(v)) this.relax(v, w);
     }
 
     let minIndex = -1;

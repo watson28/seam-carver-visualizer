@@ -6,7 +6,7 @@ export default class InputRangeController {
     this.changeValueListeners = []
     this.element = <HTMLInputElement> document.getElementById(id)
     this.element.value = '100' 
-    this.element.addEventListener('change', this.handleNewValueEvent.bind(this))
+    this.element.addEventListener('input', this.handleNewValueEvent.bind(this))
   }
 
   public registerChangeValueListener(callback: (this: void, value: Number) => void) {
