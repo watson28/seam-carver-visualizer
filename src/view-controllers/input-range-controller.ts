@@ -1,6 +1,6 @@
 export default class InputRangeController {
   private element: HTMLInputElement
-  private changeValueListeners: Array<Function>
+  private changeValueListeners: Array<(this: void, value: number) => void>
 
   constructor(id: string) {
     this.changeValueListeners = []
@@ -9,11 +9,11 @@ export default class InputRangeController {
     this.element.addEventListener('input', this.handleNewValueEvent.bind(this))
   }
 
-  public registerChangeValueListener(callback: (this: void, value: Number) => void) {
+  public registerChangeValueListener(callback: (this: void, value: number) => void): void {
     this.changeValueListeners.push(callback)
   }
 
-  public setDisabled(disabled: boolean) {
+  public setDisabled(disabled: boolean): void {
     if (disabled) this.element.setAttribute('disabled', 'disabled')
     else this.element.removeAttribute('disabled')
   }

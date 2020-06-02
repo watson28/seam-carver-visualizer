@@ -1,7 +1,7 @@
 import GridCalculator from "./grid-calculator"
 
 export default class SeamCarver {
-  private static BORDER_ENERGY: number = 1000
+  private static BORDER_ENERGY = 1000
   distTo: Array<number>
   edgeTo: Array<number>
   picture: Uint8ClampedArray
@@ -30,12 +30,12 @@ export default class SeamCarver {
     this.initEdgeTo();
 
     for(let v = 0; v < this.grid.getLength(); v++) {
-      for (let w of this.grid.adjDownward(v)) this.relax(v, w);
+      for (const w of this.grid.adjDownward(v)) this.relax(v, w);
     }
 
     let minIndex = -1;
     let minValue = Number.POSITIVE_INFINITY;
-    let lastRow = this.grid.height() - 1;
+    const lastRow = this.grid.height() - 1;
     for (let col = 0; col < this.grid.width(); col++) {
       const index = this.grid.getIndex(lastRow, col);
       if (this.distTo[index] < minValue) {
@@ -54,7 +54,7 @@ export default class SeamCarver {
     return seam;
   }
 
-  public removeVerticalSeam(seam: Array<number>) {
+  public removeVerticalSeam(seam: Array<number>): void {
     const newWidth = this.grid.width() - 1;
     const newPictureColors = new Uint8ClampedArray(newWidth * this.grid.height() * 4);
     let copyOffset = 0, sliceStart = 0, sliceEnd = 0
@@ -110,7 +110,7 @@ export default class SeamCarver {
     }
   }
 
-  public energy(col: number, row: number) {
+  public energy(col: number, row: number): number {
     if (row == 0 || row == this.grid.height() - 1 || col == 0 || col == this.grid.width() - 1) {
       return SeamCarver.BORDER_ENERGY
     }

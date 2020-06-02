@@ -19,16 +19,16 @@ export default class CanvasController {
     this.canvasEl.width = width
   }
 
+  public get width(): number {
+    return this._width
+  }
+
   public set height(height: number) {
     this._height = height
     this.canvasEl.height = height
   }
 
-  public get width() {
-    return this._width
-  }
-
-  public get height() {
+  public get height(): number {
     return this._height
   }
 
@@ -61,7 +61,7 @@ export default class CanvasController {
     return removedPixels
   }
 
-  public addVerticalSeam(seam: number[], pixels: Uint8Array) {
+  public addVerticalSeam(seam: number[], pixels: Uint8Array): void {
     const imageData = this.getCanvasPixelData()
     const newImageData = this.context.createImageData(imageData.width + 1, imageData.height)
 

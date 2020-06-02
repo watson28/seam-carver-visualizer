@@ -7,23 +7,23 @@ export default class GridCalculator {
     this._height = height
   }
 
-  public width() {
+  public width(): number {
     return this._width
   }
 
-  public height() {
+  public height(): number {
     return this._height
   }
 
-  public getLength() {
+  public getLength(): number {
     return this._width * this._height
   }
 
-  public getColumnOfIndex(index: number) {
+  public getColumnOfIndex(index: number): number {
     return index % this._width
   }
 
-  public getRowOfIndex(index: number) {
+  public getRowOfIndex(index: number): number {
     return Math.floor(index / this._width)
   }
 
@@ -31,11 +31,11 @@ export default class GridCalculator {
     return (this._width * row) + col;
   }
 
-  public getIndexFromPosition(col: number, row: number, width:number) {
+  public getIndexFromPosition(col: number, row: number, width:number): number {
     return row * width + col;
   }
 
-  public adjDownward(index: number) {
+  public adjDownward(index: number): number[] {
     const row = this.getRowOfIndex(index)
     const col = this.getColumnOfIndex(index)
     const neighbors: Array<number> = []

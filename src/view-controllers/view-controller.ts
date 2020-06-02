@@ -45,7 +45,7 @@ export default class ViewController {
     this.updatingCanvas = false
   }
 
-  public init() {
+  public init(): void {
     this.fileInputController.registerChangeImageListener(this.handleNewImage.bind(this))
     this.widthInputController.setDisabled(true)
     this.widthInputController.registerChangeValueListener(this.handleWidthResizeDebounced)

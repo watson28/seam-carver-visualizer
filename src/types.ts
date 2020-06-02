@@ -1,6 +1,6 @@
 export interface WorkerResponseData {
   type: WorkerResponseDataType,
-  response: any
+  response: number | Array<Array<number>>
 }
 
 export enum WorkerResponseDataType {

@@ -16,7 +16,7 @@ onmessage = function (event: MessageEvent) {
   sendMessage(WorkerResponseDataType.RESULT, verticalSeams)
 }
 
-function sendMessage(type: WorkerResponseDataType, response: any) {
-  // @ts-ignore An argument for 'targetOrigin' was not provided.
+function sendMessage(type: WorkerResponseDataType, response: number | Array<Array<number>>) {
+  // @ts-ignore
   postMessage({ type, response } as WorkerResponseData)
 }

@@ -14,17 +14,15 @@ export default class WorkerClient {
     this.worker = new Worker('worker.ts')
   }
 
-  public registerProgressListener(listener: ProgressListener) {
+  public registerProgressListener(listener: ProgressListener): void {
     this.progressListeners.push(listener)
-    return this
   }
 
-  public registerResultListener(listener: ResultListener) {
+  public registerResultListener(listener: ResultListener): void {
     this.resultListeners.push(listener)
-    return this
   }
 
-  public start(imageData: ImageData) {
+  public start(imageData: ImageData): void {
     this.worker.addEventListener('message', this.handleWorkerMessage.bind(this))
     this.worker.postMessage({
       picture: imageData.data,
@@ -33,7 +31,7 @@ export default class WorkerClient {
     })
   }
 
-  handleWorkerMessage(message: MessageEvent) {
+  handleWorkerMessage(message: MessageEvent): void {
     const data = message.data
 
     if (data.type === WorkerResponseDataType.PROGRESS) this.progressListeners.forEach(callback => callback(data.response))

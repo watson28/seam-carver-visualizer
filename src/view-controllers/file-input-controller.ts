@@ -1,7 +1,7 @@
 type FileEventTarget = EventTarget & { files: FileList }
 
 export default class FileInputController {
-  private changeImageListeners: Array<Function>
+  private changeImageListeners: Array<(this: void, image: HTMLImageElement) => void>
   private fileInputEl: HTMLInputElement
 
   constructor(id: string) {
@@ -9,7 +9,7 @@ export default class FileInputController {
     this.fileInputEl = <HTMLInputElement> document.getElementById(id)
     this.fileInputEl.addEventListener('change', this.handleNewFileEvent.bind(this))
   }
-  public registerChangeImageListener(callback: (this: void, image: HTMLImageElement) => void) {
+  public registerChangeImageListener(callback: (this: void, image: HTMLImageElement) => void): void {
     this.changeImageListeners.push(callback)
   }
 
