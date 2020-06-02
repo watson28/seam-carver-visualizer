@@ -2,7 +2,6 @@ import GridCalculator from "./grid-calculator"
 
 export default class SeamCarver {
   private static BORDER_ENERGY: number = 1000
-  private static ERROR_MSG_INVALID_SEAM = 'Invalid seam input.'
   distTo: Array<number>
   edgeTo: Array<number>
   picture: Uint8ClampedArray
@@ -56,13 +55,6 @@ export default class SeamCarver {
   }
 
   public removeVerticalSeam(seam: Array<number>) {
-    if (seam == null || seam.length !== this.grid.height() || this.grid.width() <= 1) throw new Error(SeamCarver.ERROR_MSG_INVALID_SEAM);
-    for (let i = 0; i < seam.length; i++) {
-      if (seam[i] < 0 || seam[i] > this.grid.width() - 1 || (i < seam.length - 1 && Math.abs(seam[i] - seam[i + 1]) > 1)) {
-        throw new Error(SeamCarver.ERROR_MSG_INVALID_SEAM);
-      }
-    }
-
     const newWidth = this.grid.width() - 1;
     const newPictureColors = new Uint8ClampedArray(newWidth * this.grid.height() * 4);
     let copyOffset = 0, sliceStart = 0, sliceEnd = 0
@@ -119,8 +111,6 @@ export default class SeamCarver {
   }
 
   public energy(col: number, row: number) {
-    if (col < 0 || col > this.grid.width() - 1 || row < 0 || row > this.grid.height() - 1)
-      throw new Error('Invalid argument')
     if (row == 0 || row == this.grid.height() - 1 || col == 0 || col == this.grid.width() - 1) {
       return SeamCarver.BORDER_ENERGY
     }

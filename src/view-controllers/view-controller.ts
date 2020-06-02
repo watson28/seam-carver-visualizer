@@ -1,4 +1,5 @@
 import debounce from 'lodash/debounce'
+import range from 'lodash/range'
 import ProgressModalController from "./progress-modal-controller"
 import CanvasController from "./canvas-controller"
 import FileInputController from "./file-input-controller"
@@ -17,6 +18,7 @@ const MAX_CANVAS_WIDTH = document.body.offsetWidth * 0.8
 
 export default class ViewController {
   private static WAITING_TIME_BEFORE_UPDATE = 200
+  private static VELOCITY = 3 // numbers of seams added/removed per update cicle
   private progressModalController: ProgressModalController
   private canvasController: CanvasController
   private fileInputController: FileInputController
@@ -29,7 +31,7 @@ export default class ViewController {
   private updatingCanvas: boolean
   private handleWidthResizeDebounced = debounce(
     this.handleWidthResize.bind(this), 
-    ViewController.WAITING_TIME_BEFORE_UPDATE
+    0
   )
 
   constructor() {
@@ -85,9 +87,8 @@ export default class ViewController {
       return
     } 
 
-    if (this.newWidth < width) this.removeVerticalSeam()
-    else this.addVerticalSeam() 
-
+    const operation = this.newWidth < width ? this.removeVerticalSeam : this.addVerticalSeam
+    range(ViewController.VELOCITY).forEach(operation.bind(this))
     requestAnimationFrame(this.updateCanvasPixels.bind(this))
   }
 
