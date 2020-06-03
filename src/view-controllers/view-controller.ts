@@ -81,14 +81,16 @@ export default class ViewController {
   }
   
   private updateCanvasPixels() {
-    const width = this.canvasController.width
-    if (this.newWidth === width) {
+    const columnDiff = this.newWidth - this.canvasController.width
+    if (columnDiff === 0) {
       this.updatingCanvas = false
       return
     } 
 
-    const operation = this.newWidth < width ? this.removeVerticalSeam : this.addVerticalSeam
-    range(ViewController.VELOCITY).forEach(operation.bind(this))
+    const operation = columnDiff < 0 ? this.removeVerticalSeam : this.addVerticalSeam
+    range(
+      Math.min(ViewController.VELOCITY, Math.abs(columnDiff))
+    ).forEach(operation.bind(this))
     requestAnimationFrame(this.updateCanvasPixels.bind(this))
   }
 

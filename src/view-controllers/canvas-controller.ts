@@ -20,7 +20,7 @@ export default class CanvasController {
   }
 
   public get width(): number {
-    return this._width
+    return Math.round(this._width)
   }
 
   public set height(height: number) {
@@ -29,7 +29,7 @@ export default class CanvasController {
   }
 
   public get height(): number {
-    return this._height
+    return Math.round(this._height)
   }
 
   public drawImage(image: HTMLImageElement): void {
