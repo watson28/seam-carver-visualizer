@@ -1,4 +1,4 @@
-import GridCalculator from "./grid-calculator"
+import GridCalculator from "../grid-calculator"
 
 export default class SeamCarver {
   private static BORDER_ENERGY = 1000

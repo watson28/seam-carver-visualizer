@@ -4,7 +4,7 @@ import ProgressModalController from "./progress-modal-controller"
 import CanvasController from "./canvas-controller"
 import FileInputController from "./file-input-controller"
 import InputRangeController from "./input-range-controller"
-import WorkerClient from '../worker-client'
+import { createWebWorkerExecutor } from '../seam-carver'
 
 const IDs = {
   canvas: 'image-preview',
@@ -17,7 +17,6 @@ const IDs = {
 const MAX_CANVAS_WIDTH = document.body.offsetWidth * 0.8
 
 export default class ViewController {
-  private static WAITING_TIME_BEFORE_UPDATE = 200
   private static VELOCITY = 3 // numbers of seams added/removed per update cicle
   private progressModalController: ProgressModalController
   private canvasController: CanvasController
@@ -61,16 +60,16 @@ export default class ViewController {
     this.progressModalController.show()
     this.progressModalController.setProgress(0)
 
-    const workerClient = new WorkerClient()
-    workerClient.registerProgressListener(
+    const executorService = createWebWorkerExecutor()
+    executorService.registerProgressListener(
       progress => this.progressModalController.setProgress(progress)
     )
-    workerClient.registerResultListener(result => {
+    executorService.registerResultListener(result => {
       this.verticalSeams = result
       this.progressModalController.hide()
       this.widthInputController.setDisabled(false)
     })
-    workerClient.start(this.canvasController.getCanvasPixelData())
+    executorService.start(this.canvasController.getCanvasPixelData())
   }
 
   private handleWidthResize(widthPercentage: number) {
