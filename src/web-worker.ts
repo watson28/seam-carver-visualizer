@@ -1,4 +1,4 @@
-import SeamCarver from "./seam-carver"
+import SeamCarver from "./seam-carver/seam-carver"
 import { WorkerResponseData, WorkerResponseDataType } from './types'
 
 onmessage = function (event: MessageEvent) {

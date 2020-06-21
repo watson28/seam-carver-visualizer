@@ -1,4 +1,4 @@
-import { WorkerResponseDataType } from './types'
+import { WorkerResponseDataType } from '../types'
 import ExecutorService from './executor-service'
 
 export default class ExecutorServiceWebWorker extends ExecutorService {
@@ -6,7 +6,7 @@ export default class ExecutorServiceWebWorker extends ExecutorService {
 
   constructor() {
     super()
-    this.worker = new Worker('./worker.ts')
+    this.worker = new Worker('../web-worker.ts')
   }
 
   public start(imageData: ImageData): void {

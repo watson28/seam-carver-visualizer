@@ -4,7 +4,8 @@ import ProgressModalController from "./progress-modal-controller"
 import CanvasController from "./canvas-controller"
 import FileInputController from "./file-input-controller"
 import InputRangeController from "./input-range-controller"
-import { createWebWorkerExecutor } from '../seam-carver'
+import { createWebWorkerExecutor, createCloudFunctionExecutor } from '../seam-carver'
+import RadioInputController from './radio-input-controller'
 
 const IDs = {
   canvas: 'image-preview',
@@ -22,6 +23,7 @@ export default class ViewController {
   private canvasController: CanvasController
   private fileInputController: FileInputController
   private widthInputController: InputRangeController
+  private processingTypeController: RadioInputController
   private verticalSeams: number[][]
   private removedVerticalSeams: number[][]
   private removedVerticalPixels: Uint8Array[]
@@ -41,6 +43,7 @@ export default class ViewController {
     this.canvasController = new CanvasController(IDs.canvas)
     this.fileInputController = new FileInputController(IDs.fileInput)
     this.widthInputController = new InputRangeController(IDs.widthRange)
+    this.processingTypeController = new RadioInputController('processing-option')
     this.updatingCanvas = false
   }
 
@@ -60,7 +63,7 @@ export default class ViewController {
     this.progressModalController.show()
     this.progressModalController.setProgress(0)
 
-    const executorService = createWebWorkerExecutor()
+    const executorService = this.createExecutorService()
     executorService.registerProgressListener(
       progress => this.progressModalController.setProgress(progress)
     )
@@ -70,6 +73,11 @@ export default class ViewController {
       this.widthInputController.setDisabled(false)
     })
     executorService.start(this.canvasController.getCanvasPixelData())
+  }
+
+  private createExecutorService() {
+    if (this.processingTypeController.value === 'web-worker') return createWebWorkerExecutor()
+    else return createCloudFunctionExecutor()
   }
 
   private handleWidthResize(widthPercentage: number) {
