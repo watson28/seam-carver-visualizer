@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel index.html",
-    "prestart:cloud-function": "tsc --build tsconfig-cloud-function.json",
+    "prestart:cloud-function": "rm -rf dis-cloud-function && tsc --build tsconfig-cloud-function.json",
     "start:cloud-function": "functions-framework --source=dist-cloud-function/cloud-function.js --target=handler",
+    "profile:cloud-function": "node --prof ./node_modules/.bin/functions-framework --source=dist-cloud-function/cloud-function.js --target=handler",
     "build": "parcel build index.html",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",

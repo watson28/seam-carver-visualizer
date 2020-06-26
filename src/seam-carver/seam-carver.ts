@@ -30,7 +30,7 @@ export default class SeamCarver {
     this.initEdgeTo();
 
     for(let v = 0; v < this.grid.getLength(); v++) {
-      for (const w of this.grid.adjDownward(v)) this.relax(v, w);
+      this.relaxNeighbors(v)
     }
 
     let minIndex = -1;
@@ -100,6 +100,30 @@ export default class SeamCarver {
     for (let i = 0; i < this.grid.getLength(); i++) {
       this.edgeTo[i] = -1;
     }
+  }
+
+/*
+ * PERFORMANCE UPDATE: removed function to get neighbors from grid-calculator.
+ * REASON: get neighbors function was creating an array which impacted the performance.
+ * SOLUTION: Created this method that compute the neighbors and performs the relaxation of the node.
+ */
+  private relaxNeighbors(v: number) {
+      const row = this.grid.getRowOfIndex(v)
+      const col = this.grid.getColumnOfIndex(v)
+
+      if (row >= this.height() - 1) return
+
+      // bottom neighbor
+      this.relax(v, this.grid.getIndex(row + 1, col))
+
+      // bottom-left neighbor
+      if (col > 0) {
+          this.relax(v, this.grid.getIndex(row + 1, col - 1))
+      }
+      // bottom-right neighbor.
+      if (col < this.width() - 1) {
+          this.relax(v, this.grid.getIndex(row + 1, col + 1))
+      }
   }
 
   private relax(v: number, w: number) {

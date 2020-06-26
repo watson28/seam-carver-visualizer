@@ -34,25 +34,4 @@ export default class GridCalculator {
   public getIndexFromPosition(col: number, row: number, width:number): number {
     return row * width + col;
   }
-
-  public adjDownward(index: number): number[] {
-    const row = this.getRowOfIndex(index)
-    const col = this.getColumnOfIndex(index)
-    const neighbors: Array<number> = []
-
-    if (row >= this.height() - 1) return neighbors;
-
-    // bottom neighbor
-    neighbors.unshift(this.getIndex(row + 1, col))
-
-    // bottom-left neighbor
-    if (col > 0) {
-        neighbors.unshift(this.getIndex(row + 1, col - 1))
-    }
-    // bottom-right neighbor.
-    if (col < this.width() - 1) {
-        neighbors.unshift(this.getIndex(row + 1, col + 1))
-    }
-    return neighbors
-  }
 }
