@@ -55,9 +55,10 @@ export default class ViewController {
 
   private async handleNewImage(image: HTMLImageElement) {
     const scaleFactor = Math.min(MAX_CANVAS_WIDTH, image.width) / image.width
-    this.originalWidth = image.width * scaleFactor
+    this.originalWidth = Math.round(image.width * scaleFactor)
     this.canvasController.width = this.originalWidth 
-    this.canvasController.height = image.height * scaleFactor
+    this.canvasController.parentWidth = this.originalWidth + 2
+    this.canvasController.height = Math.round(image.height * scaleFactor)
     this.canvasController.drawImage(image)
     
     this.progressModalController.show()
