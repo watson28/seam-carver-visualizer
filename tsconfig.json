@@ -10,6 +10,7 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "module": "commonjs",
+    "target": "es2015",
     "esModuleInterop": true,
     "rootDir": "src",
     "moduleResolution": "node",

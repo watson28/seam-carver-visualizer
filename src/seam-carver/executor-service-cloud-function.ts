@@ -3,7 +3,7 @@ import ExecutorService from './executor-service'
 export default class ExecutorServiceCloudFunction extends ExecutorService {
   private cloudFunctionUrl: string
   startTime: number
-  timerId: number
+  timerId: NodeJS.Timeout
 
   constructor(cloudFunctionUrl: string) {
     super()

@@ -19,15 +19,16 @@ export default class CanvasController {
     this.canvasEl.width = width
   }
 
+  public get width(): number {
+    return Math.round(this._width)
+  }
+
+
   public set parentWidth(width: number) {
     // Container to center canvas
     const parentElement = this.canvasEl.parentElement
     parentElement.classList.remove('invisible')
     parentElement.setAttribute('style', `${parentElement.getAttribute('style')}; width: ${width}px`) 
-  }
-
-  public get width(): number {
-    return Math.round(this._width)
   }
 
   public set height(height: number) {
