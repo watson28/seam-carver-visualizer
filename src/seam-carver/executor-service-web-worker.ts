@@ -1,11 +1,14 @@
-import { WorkerResponseDataType } from '../types'
+import { WorkerRequestData, WorkerResponseDataType } from '../types'
 import ExecutorService from './executor-service'
 
+export type ExecutorWorkerType = 'js' | 'webAssembly'
 export default class ExecutorServiceWebWorker extends ExecutorService {
+  private type: ExecutorWorkerType
   private worker: Worker
 
-  constructor() {
+  constructor(type: ExecutorWorkerType) {
     super()
+    this.type = type
     this.worker = new Worker('../web-worker.ts')
   }
 
@@ -14,11 +17,12 @@ export default class ExecutorServiceWebWorker extends ExecutorService {
     this.worker.postMessage({
       picture: imageData.data,
       width: imageData.width,
-      height: imageData.height
-    })
+      height: imageData.height,
+      type: this.type
+    } as WorkerRequestData)
   }
 
-  handleWorkerMessage(message: MessageEvent): void {
+  private handleWorkerMessage(message: MessageEvent): void {
     const data = message.data
 
     if (data.type === WorkerResponseDataType.PROGRESS) this.notifyProgress(data.response)

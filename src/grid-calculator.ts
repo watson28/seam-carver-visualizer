@@ -30,8 +30,4 @@ export default class GridCalculator {
   public getIndex(row: number, col: number): number {
     return (this._width * row) + col;
   }
-
-  public getIndexFromPosition(col: number, row: number, width:number): number {
-    return row * width + col;
-  }
 }

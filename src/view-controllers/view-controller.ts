@@ -69,15 +69,18 @@ export default class ViewController {
       progress => this.progressModalController.setProgress(progress)
     )
     executorService.registerResultListener(result => {
+      console.timeEnd('seam-carver')
       this.verticalSeams = result
       this.progressModalController.hide()
       this.widthInputController.setDisabled(false)
     })
+    console.time('seam-carver')
     executorService.start(this.canvasController.getCanvasPixelData())
   }
 
   private createExecutorService() {
-    if (this.processingTypeController.value === 'web-worker') return createWebWorkerExecutor()
+    if (this.processingTypeController.value === 'web-worker') return createWebWorkerExecutor('js')
+    if (this.processingTypeController.value === 'webassembly') return createWebWorkerExecutor('webAssembly')
     else return createCloudFunctionExecutor()
   }
 
