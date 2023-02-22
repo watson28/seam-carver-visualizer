@@ -16,9 +16,9 @@ type SeamCarver struct {
 	grid          GridCalculator
 }
 
-func NewSeamCarver(picture []uint8, pictureWidth int, pictureHeight int) SeamCarver {
+func NewSeamCarver(picture *[]uint8, pictureWidth int, pictureHeight int) SeamCarver {
 	seamCarver := SeamCarver{
-		picture: picture,
+		picture: *picture,
 		grid:    GridCalculator{width: pictureWidth, height: pictureHeight},
 	}
 	seamCarver.initPixelEnergies()
@@ -26,7 +26,7 @@ func NewSeamCarver(picture []uint8, pictureWidth int, pictureHeight int) SeamCar
 	return seamCarver
 }
 
-func (sc SeamCarver) GetVerticalSeam() []uint16 {
+func (sc *SeamCarver) GetVerticalSeam() []uint16 {
 	sc.initDistTo(true)
 	sc.initEdgeTo()
 
@@ -56,14 +56,14 @@ func (sc SeamCarver) GetVerticalSeam() []uint16 {
 	return seam
 }
 
-func (sc *SeamCarver) RemoveVerticalSeam(seam []uint16) {
+func (sc *SeamCarver) RemoveVerticalSeam(seam *[]uint16) {
 	newWidth := sc.grid.width - 1
 	newPictureColors := make([]uint8, newWidth*sc.grid.height*4)
 	copyOffset := 0
 	sliceStart := 0
 	sliceEnd := 0
-	for row := 0; row < len(seam); row++ {
-		sliceEnd = sc.grid.GetIndex(row, int(seam[row])) * 4
+	for row := 0; row < len(*seam); row++ {
+		sliceEnd = sc.grid.GetIndex(row, int((*seam)[row])) * 4
 		copy(newPictureColors[copyOffset:], sc.picture[sliceStart:sliceEnd])
 		copyOffset += (sliceEnd - sliceStart)
 		sliceStart = sliceEnd + 4
@@ -82,7 +82,7 @@ func (sc *SeamCarver) initPixelEnergies() {
 	}
 }
 
-func (sc SeamCarver) getVertexEnergy(col int, row int) uint16 {
+func (sc *SeamCarver) getVertexEnergy(col int, row int) uint16 {
 	if row == 0 || row == sc.grid.height-1 || col == 0 || col == sc.grid.width-1 {
 		return BORDER_ENERGY
 	}
@@ -94,7 +94,7 @@ func (sc SeamCarver) getVertexEnergy(col int, row int) uint16 {
 	return uint16(math.Sqrt(deltaRow + deltaCol))
 }
 
-func (sc SeamCarver) getColor(col int, row int) Color {
+func (sc *SeamCarver) getColor(col int, row int) Color {
 	redIndex := sc.grid.GetIndex(row, col) * 4
 	return Color{
 		sc.picture[redIndex],
@@ -104,7 +104,7 @@ func (sc SeamCarver) getColor(col int, row int) Color {
 	}
 }
 
-func (sc SeamCarver) getColorDelta(a Color, b Color) float64 {
+func (sc *SeamCarver) getColorDelta(a Color, b Color) float64 {
 	// TODO add alpha diff?
 	return math.Pow(float64(subsUint8(a[0], b[0])), 2) +
 		math.Pow(float64(subsUint8(a[1], b[1])), 2) +
@@ -119,13 +119,13 @@ func subsUint8(a uint8, b uint8) uint8 {
 	}
 }
 
-func (sc *SeamCarver) removePixelEnergySeam(seam []uint16, newWidth int) {
+func (sc *SeamCarver) removePixelEnergySeam(seam *[]uint16, newWidth int) {
 	newPixelEnergies := make([]uint16, newWidth*sc.grid.height)
 	copyOffset := 0
 	sliceStart := 0
 	sliceEnd := 0
-	for row := 0; row < len(seam); row++ {
-		sliceEnd = sc.grid.GetIndex(row, int(seam[row]))
+	for row := 0; row < len(*seam); row++ {
+		sliceEnd = sc.grid.GetIndex(row, int((*seam)[row]))
 		copy(newPixelEnergies[copyOffset:], sc.pixelEnergies[sliceStart:sliceEnd])
 		copyOffset += (sliceEnd - sliceStart)
 		sliceStart = sliceEnd + 1

@@ -11,7 +11,7 @@ func startSeamCarver(this js.Value, args []js.Value) interface{} {
 	width := args[1].Int()
 	height := args[2].Int()
 
-	seamCarver := NewSeamCarver(picture, width, height)
+	seamCarver := NewSeamCarver(&picture, width, height)
 
 	result := make([]interface{}, height*(width-1))
 	var seam []uint16
@@ -23,7 +23,7 @@ func startSeamCarver(this js.Value, args []js.Value) interface{} {
 			result[i] = seam[j]
 			i = i + 1
 		}
-		seamCarver.RemoveVerticalSeam(seam)
+		seamCarver.RemoveVerticalSeam(&seam)
 		if i%10 == 0 {
 			js.Global().Call("webassembly_report_progress", 1-float32(seamCarver.grid.width)/float32(width))
 		}
